@@ -36,6 +36,7 @@ public class MaterialPage extends ActionBarActivity {
     ScrollView mScrollView;
     String objectID = "tG2zpJsmna";
     TextView nameTextView, textTextView;
+    Boolean gotBitmap1 = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +48,7 @@ public class MaterialPage extends ActionBarActivity {
         // Initialize Parse
         Parse.initialize(this, "Ry81veGB1n2Ly8K4qa22iYJCohAoS2U4B1ITsY1k", "FLzJTZZ0QBLQpjOEra6dY9p1v3UcIK7tTjmmGRzT");
 
-             getInfo(objectID);
+        getInfo(objectID);
 
 
 //        mCustomPageAdapter = new CustomPageAdapter(this, mResources);
@@ -94,41 +95,49 @@ public class MaterialPage extends ActionBarActivity {
 
 
     public void getInfo(String objectID) {
-        //Get Parse object with objectID
+
         //Locate the Materials Library class
         ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Arup_Material_Samples");
+
         //Locate the objectID in this class
-
-
         query.getInBackground(objectID, new GetCallback<ParseObject>() {
             @Override
             public void done(final ParseObject object, ParseException e) {
-
+                //get title
                 String materialName = object.getString("materialName");
                 nameTextView.setText(materialName);
 
+                //get info
                 String materialText = object.getString("Text");
                 textTextView.setText(materialText);
 
                 //Get all Image file objects
                 ParseFile fileObjectOne = (ParseFile) object.get("Image");
+                ParseFile fileObjectTwo = (ParseFile) object.get("image2");
 
                 //Convert all image file objects to Bitmaps in a background task
                 //When done create a Bitmap[] array
-
                 fileObjectOne.getDataInBackground(new GetDataCallback() {
                                                       @Override
                                                       public void done(byte[] data, ParseException e) {
                                                           if (e == null) {
                                                               //Decode the Bytes into a Bitmap
                                                               final Bitmap bitmap1 = BitmapFactory.decodeByteArray(data, 0, data.length);
+                                                              setViewPager(bitmap1);
+                                                          } else {
+                                                              Log.d("test", "error#1");
+                                                          }
+                                                      }
+                                                  }
 
-                                                              Bitmap[] mResources = {bitmap1};
-
-                                                              mCustomPageAdapter = new CustomPageAdapter(MaterialPage.this, mResources);
-                                                              mViewPager = (ViewPager) findViewById(R.id.pager);
-                                                              mViewPager.setAdapter(mCustomPageAdapter);
-
+                );
+                fileObjectTwo.getDataInBackground(new GetDataCallback() {
+                                                      @Override
+                                                      public void done(byte[] data, ParseException e) {
+                                                          if (e == null) {
+                                                              //Decode the Bytes into a Bitmap
+                                                              final Bitmap bitmap2 = BitmapFactory.decodeByteArray(data, 0, data.length);
+                                                              setViewPager(bitmap2);
                                                           } else {
                                                               Log.d("test", "error#1");
                                                           }
@@ -138,10 +147,31 @@ public class MaterialPage extends ActionBarActivity {
                 );
             }
         });
+    }
 
+    Bitmap mBitmap1 = null;
+    Bitmap mBitmap2 = null;
+    int counter=0;
 
+    void setViewPager(Bitmap bitmap) {
+        if(counter==0){
+           mBitmap1= bitmap;
+           counter++;
+        }
+
+        if (counter==1){
+            mBitmap2=bitmap;
+
+            Bitmap[] mResources = {mBitmap1, mBitmap2};
+
+            mCustomPageAdapter = new CustomPageAdapter(MaterialPage.this, mResources);
+            mViewPager = (ViewPager) findViewById(R.id.pager);
+            mViewPager.setAdapter(mCustomPageAdapter);
+
+        }
     }
 }
+
 
 
 
